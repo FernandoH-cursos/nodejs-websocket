@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <h1>Websockets - <small>Status</small></h1>
+
+  <form>
+    <input type="text" placeholder="Enviar mensaje">
+    <button type="submit">Enviar</button>
+  </form>
+
+  <ul id="messages">
+
+  </ul>
+
+
+  <script>
+    //* Guarda la instancia de WebSocket
+    let socket = null;
+
+
+    const form = document.querySelector('form');
+    const input = document.querySelector('input');
+    const messagesElem = document.querySelector('#messages');
+    const statusElem = document.querySelector('h1 small');
+
+    function sendMessage(message) {
+      //* Enviar el mensaje al servidor de WebSocket 
+      socket?.send(message);
+    }
+
+    function renderMessage(message) {
+      const li = document.createElement('li');
+      li.innerHTML = message;
+      messagesElem.prepend(li);
+      
+    }
+    
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const message = input.value;
+
+      sendMessage(message);
+      input.value = '';
+    });
+
+    function connectToServer(){
+      //* Crea una instancia de Cliente WebSocket 
+      socket = new WebSocket('ws://localhost:3000');
+        
+
+      //* Este evento se dispara cuando el servidor abre la conexión de WebSocket
+      socket.onopen = event => {
+        // console.log('Conexión abierta');
+        statusElem.textContent = 'Online';
+      }
+  
+      //* Este evento se dispara cuando el servidor cierra la conexión de WebSocket
+      socket.onclose = event => {
+        // console.log('Conexión cerrada');
+         statusElem.textContent = 'Offline';
+
+        setTimeout(() => {
+          connectToServer();
+        }, 1500);
+      }
+  
+      //* Este evento se dispara cuando el servidor envía un mensaje al cliente 
+      socket.onmessage = event => {
+        const {payload} = JSON.parse(event.data);
+  
+        renderMessage(payload);
+      }
+    }
+
+    connectToServer();
+  </script>
+</body>
+
+</html>
